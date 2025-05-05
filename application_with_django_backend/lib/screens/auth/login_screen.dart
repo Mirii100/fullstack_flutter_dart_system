@@ -98,9 +98,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 TextButton(
                   onPressed: () {
-                    // Navigate to register screen (to be implemented)
+                    Navigator.pushReplacementNamed(context, '/register');
                   },
                   child: const Text('Don\'t have an account? Register'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/forgot-password');
+                  },
+                  child: const Text('Forgot password?'),
                 ),
               ],
             ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-
 import '../../providers/order_provider.dart';
 import '../../services/order_service.dart';
 import '../../utils/validators.dart';
@@ -16,14 +15,30 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
   final _shippingAddressController = TextEditingController();
+  final _addressFocusNode = FocusNode();
+  bool _isProcessing = false;
 
   @override
   void dispose() {
     _shippingAddressController.dispose();
+    _addressFocusNode.dispose();
     super.dispose();
   }
 
   Future<void> _placeOrder() async {
+    // First unfocus to dismiss keyboard properly
+    _addressFocusNode.unfocus();
+
+    // Prevent multiple rapid button presses
+    if (_isProcessing) return;
+
+    setState(() {
+      _isProcessing = true;
+    });
+
+    // Small delay to ensure keyboard is fully dismissed
+    await Future.delayed(const Duration(milliseconds: 100));
+
     if (_formKey.currentState!.validate()) {
       final cartProvider = Provider.of<CartProvider>(context, listen: false);
       final orderService = OrderService();
@@ -33,19 +48,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           cartItems: cartProvider.cartItems,
         );
         cartProvider.clearCart();
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/order_history',
-              (route) => route.isFirst,
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Order placed successfully')),
-        );
+        if (mounted) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/order_history',
+                (route) => route.isFirst,
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Order placed successfully')),
+          );
+        }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to place order: $e')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to place order: $e')),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isProcessing = false;
+          });
+        }
       }
+    } else {
+      setState(() {
+        _isProcessing = false;
+      });
     }
   }
 
@@ -92,6 +121,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _shippingAddressController,
+                focusNode: _addressFocusNode,
                 decoration: const InputDecoration(
                   labelText: 'Shipping Address',
                   border: OutlineInputBorder(),
@@ -101,8 +131,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _placeOrder,
-                child: const Text('Place Order'),
+                onPressed: _isProcessing ? null : _placeOrder,
+                child: _isProcessing
+                    ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+                    : const Text('Place Order'),
               ),
             ],
           ),

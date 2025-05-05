@@ -22,5 +22,5 @@ class ApiConfig {
   static const String notificationsUrl = '$apiUrl/notifications/';
 
   // Media URLs
-  static const String mediaUrl = '$baseUrl/media/';
+  static const String mediaUrl = '/media/';
 }

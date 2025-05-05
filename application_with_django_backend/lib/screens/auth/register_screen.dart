@@ -1,7 +1,10 @@
+// lib/screens/auth/register_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/auth_providers.dart';
+
 import '../../utils/validators.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -73,7 +76,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     labelText: 'Username',
                     border: OutlineInputBorder(),
                   ),
-                //  validator: (value) => Validators.username(value),
+                  validator:  Validators.username(),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -83,7 +86,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.emailAddress,
-                  //validator: Validators.email,
+                  validator: Validators.email(),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -103,7 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       },
                     ),
                   ),
-                  //validator: Validators.password,
+                  validator: Validators.password(),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -132,7 +135,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.pushNamed(context, '/login'),
+                  onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
                   child: const Text('Already have an account? Login'),
                 ),
               ],

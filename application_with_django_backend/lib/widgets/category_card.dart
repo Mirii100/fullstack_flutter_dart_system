@@ -9,23 +9,43 @@ class CategoryCard extends StatelessWidget {
 
   const CategoryCard({super.key, required this.category});
 
+  // Helper function to normalize the image URL and avoid duplication
+  String normalizeImageUrl(String? url, String baseUrl) {
+    print('Category Icon URL: $url');
+    if (url == null || url.isEmpty) return '';
+
+    // Encode the URL to handle special characters (e.g., spaces)
+    String encodedUrl = Uri.encodeFull(url);
+
+    // Remove duplicate base URLs
+    String cleanedUrl = encodedUrl;
+    String baseUrlPattern = baseUrl;
+    int baseUrlLength = baseUrl.length;
+
+    // Keep removing duplicates until no more are found
+    while (cleanedUrl.contains(baseUrlPattern + baseUrl)) {
+      int firstIndex = cleanedUrl.indexOf(baseUrlPattern);
+      cleanedUrl = cleanedUrl.substring(0, firstIndex) + cleanedUrl.substring(firstIndex + baseUrlLength);
+    }
+
+    // If the URL already starts with the base URL, use it as is
+    if (cleanedUrl.startsWith(baseUrl)) {
+      return cleanedUrl;
+    }
+
+    // If the URL is a relative path, prepend the base URL
+    if (!cleanedUrl.startsWith('http') && cleanedUrl.isNotEmpty) {
+      return baseUrl + (cleanedUrl.startsWith('/') ? '' : '/') + cleanedUrl;
+    }
+
+    return cleanedUrl;
+  }
+
   @override
   Widget build(BuildContext context) {
     final itemProvider = Provider.of<ItemProvider>(context, listen: false);
-
-    // Helper function to safely parse the icon value
-    IconData _getIcon() {
-      try {
-        // Try parsing the icon string to an integer and return the icon
-        return category.icon.isNotEmpty
-            ? IconData(int.parse(category.icon), fontFamily: 'MaterialIcons')
-            : Icons.category;
-      } catch (e) {
-        // If an error occurs during parsing, return the default icon
-        print("Error parsing icon: $e");
-        return Icons.category;
-      }
-    }
+    const String baseUrl = 'http://127.0.0.1:8000';
+    final String iconUrl = normalizeImageUrl(category.icon, baseUrl);
 
     return GestureDetector(
       onTap: () async {
@@ -41,8 +61,20 @@ class CategoryCard extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                _getIcon(),
+              iconUrl.isNotEmpty && Uri.tryParse(iconUrl)?.isAbsolute == true
+                  ? Image.network(
+                iconUrl,
+                width: 40,
+                height: 40,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.category,
+                  size: 40,
+                  color: Colors.blue,
+                ),
+              )
+                  : const Icon(
+                Icons.category,
                 size: 40,
                 color: Colors.blue,
               ),

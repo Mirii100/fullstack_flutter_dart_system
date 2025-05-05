@@ -2,6 +2,7 @@ import 'package:application_with_django_backend/providers/auth_providers.dart';
 import 'package:application_with_django_backend/providers/category_provider.dart';
 import 'package:application_with_django_backend/providers/item_prov.dart';
 import 'package:application_with_django_backend/providers/order_provider.dart';
+import 'package:application_with_django_backend/screens/auth/forgot_password.dart';
 import 'package:application_with_django_backend/screens/auth/login_screen.dart';
 import 'package:application_with_django_backend/screens/auth/register_screen.dart';
 import 'package:application_with_django_backend/screens/home/home_screen.dart';
@@ -54,6 +55,7 @@ class MarketplaceApp extends StatelessWidget {
         routes: {
           '/': (context) => const AuthWrapper(),
           '/login': (context) => const LoginScreen(),
+          '/forgot-password': (context) => const ForgotPasswordScreen(),
           '/register': (context) => const RegisterScreen(),
           '/home': (context) => const HomeScreen(),
           '/items': (context) => const ItemListScreen(),

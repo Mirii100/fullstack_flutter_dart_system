@@ -1,19 +1,56 @@
 import 'package:flutter/material.dart';
-
 import 'package:provider/provider.dart';
 
 import '../models/item.dart';
 import '../providers/order_provider.dart';
-
 
 class ItemCard extends StatelessWidget {
   final Item item;
 
   const ItemCard({super.key, required this.item});
 
+  // Helper function to normalize the image URL and avoid duplication
+  String normalizeImageUrl(String? url, String baseUrl) {
+    // Log the URL for debugging
+    print('Original Image URL: $url');
+
+    // Handle null or empty URL
+    if (url == null || url.isEmpty) {
+      return '';
+    }
+
+    // Encode the URL to handle special characters
+    String encodedUrl = Uri.encodeFull(url);
+
+    // Remove duplicate base URLs
+    String cleanedUrl = encodedUrl;
+    String baseUrlPattern = baseUrl;
+
+    // Split the URL by the base URL to count occurrences
+    List<String> parts = cleanedUrl.split(baseUrlPattern);
+    if (parts.length > 2) {
+      // If there are duplicates, keep only the first occurrence of baseUrl
+      cleanedUrl = baseUrlPattern + parts.sublist(1).join('');
+    } else {
+      cleanedUrl = encodedUrl;
+    }
+
+    // If the URL is a relative path, prepend the base URL
+    if (!cleanedUrl.startsWith('http') && cleanedUrl.isNotEmpty) {
+      return baseUrl + (cleanedUrl.startsWith('/') ? '' : '/') + cleanedUrl;
+    }
+
+    return cleanedUrl; // Return the encoded URL if already valid
+  }
+
   @override
   Widget build(BuildContext context) {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    // Define the base URL for your server
+    const String baseUrl = 'http://127.0.0.1:8000';
+    // Normalize the image URL
+    final String imageUrl = normalizeImageUrl(item.fullImageUrl, baseUrl);
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -22,13 +59,13 @@ class ItemCard extends StatelessWidget {
         children: [
           Expanded(
             child: ClipRRect(
-              borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(12)),
-              child: item.fullImageUrl.isNotEmpty
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: imageUrl.isNotEmpty && Uri.tryParse(imageUrl)?.isAbsolute == true
                   ? Image.network(
-                item.fullImageUrl,
+                imageUrl,
                 fit: BoxFit.cover,
                 width: double.infinity,
+                headers: const {'Authorization': 'Bearer YOUR_TOKEN_HERE'}, // Replace with actual token
                 errorBuilder: (context, error, stackTrace) =>
                 const Icon(Icons.broken_image, size: 50),
               )
